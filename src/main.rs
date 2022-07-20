@@ -13,7 +13,6 @@ pub trait ReqString {
     fn req_headers_end(&mut self);
 }
 
-// This is just to show that we're working on the specific Request string
 impl ReqString for String {
     fn req_headers_end(&mut self) {
         self.push_str("\r\n");
@@ -73,10 +72,9 @@ impl WriteBytes for TcpStream {
 // as it now is simply one string
 // to which we are appending the headers etc.
 fn main() {
-    let (url, method) = parse_cmd_args();
+    let (url, method, port) = parse_cmd_args();
 
     // TODO: Port from cmd args
-    let port = "80";
     let mut text: String = req_type_with_path(method, "/");
     // TODO: Headers from args
     let headers = vec![
@@ -98,11 +96,11 @@ fn main() {
     let mut buffer = Vec::new(); //[0 as u8; 6];
                                  // TODO: Handle situation where can't connect to the server
     let mut stream = TcpStream::connect(sockets[0].sockaddr).unwrap();
-    println!("{}", text);
     stream.write_bytes(&text).unwrap();
     println!("{}", text);
     stream.read_to_end(&mut buffer).unwrap();
-    println!("{:?}", str::from_utf8(&buffer));
+    let response = str::from_utf8(&buffer).unwrap();
+    println!("{}", response);
 }
 
 fn get_sockets(host: &String, port: &String) -> Vec<AddrInfo> {
@@ -116,7 +114,7 @@ fn get_sockets(host: &String, port: &String) -> Vec<AddrInfo> {
         .unwrap();
 }
 
-fn parse_cmd_args() -> (String, ReqType) {
+fn parse_cmd_args() -> (String, ReqType, String) {
     let matches = App::new("HTTPR")
         .version("0.1.0")
         .author("Aleksi Puttonen <aleksi.puttonen@gmail.com>")
@@ -137,9 +135,18 @@ fn parse_cmd_args() -> (String, ReqType) {
                 .default_value("GET")
                 .help("Method to request the host with"),
         )
+        .arg(
+            Arg::new("port")
+                .short('p')
+                .long("port")
+                .takes_value(true)
+                .default_value("80")
+                .help("Port to request the host on"),
+        )
         .get_matches();
 
-    let url = matches.value_of("url").expect("You should provide URL");
-    let method = matches.value_of("method").unwrap_or("GET");
-    return (url.to_string(), ReqType::from_str(method));
+    let url = matches.get_one::<String>("url").expect("Default by clap");
+    let method = matches.get_one::<String>("method").expect("Default by clap");
+    let port = matches.get_one::<String>("port").expect("Default by clap");
+    return (url.to_owned(), ReqType::from_str(method), port.to_owned());
 }
