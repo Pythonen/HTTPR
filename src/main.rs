@@ -74,8 +74,8 @@ impl WriteBytes for TcpStream {
 fn main() {
     let (url, method, port) = parse_cmd_args();
 
-    // TODO: Port from cmd args
     let mut text: String = req_type_with_path(method, "/");
+
     // TODO: Headers from args
     let headers = vec![
         Header {
@@ -92,7 +92,7 @@ fn main() {
     // Terminating CRLF
     text.req_headers_end();
 
-    let sockets = get_sockets(&url, &port.to_string());
+    let sockets = get_sockets(&url, &port);
     let mut buffer = Vec::new(); //[0 as u8; 6];
                                  // TODO: Handle situation where can't connect to the server
     let mut stream = TcpStream::connect(sockets[0].sockaddr).unwrap();
@@ -103,7 +103,7 @@ fn main() {
     println!("{}", response);
 }
 
-fn get_sockets(host: &String, port: &String) -> Vec<AddrInfo> {
+fn get_sockets(host: &str, port: &str) -> Vec<AddrInfo> {
     let hints = AddrInfoHints {
         socktype: SockType::Stream.into(),
         ..AddrInfoHints::default()
