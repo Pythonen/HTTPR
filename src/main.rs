@@ -49,12 +49,12 @@ impl Header {
     pub fn apply_all_headers(headers: Vec<Header>, header_text: &mut String) {
         let mut header = String::new();
         for head in headers {
-            header += &head.construct_header_as_str();
+            header += &head.construct_header_as_string();
         }
         header_text.push_str(&header);
     }
-    fn construct_header_as_str(&self) -> String {
-        return self.header_name.to_owned() + ": " + &self.header_value + "\r\n";
+    fn construct_header_as_string(self) -> String {
+        return self.header_name + ": " + &self.header_value + "\r\n";
     }
 }
 
